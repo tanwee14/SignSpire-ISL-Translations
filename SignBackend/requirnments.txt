@@ -1,0 +1,8 @@
+pydantic
+fastapi
+vidgear
+dotenv
+groq
+requests
+pose_format
+scipy
