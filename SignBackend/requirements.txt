@@ -6,3 +6,6 @@ groq
 requests
 pose_format
 scipy
+cloudinary
+google-api-python-client
+yt-dlp

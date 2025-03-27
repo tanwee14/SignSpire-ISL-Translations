@@ -1,6 +1,6 @@
 import math
 from typing import List
-
+import vidgear
 import numpy as np
 import scipy.signal
 from pose_format import Pose

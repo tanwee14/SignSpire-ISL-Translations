@@ -1,20 +1,32 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from groq import Groq
 import os
+import logging
+from lookup import lookup  # Import lookup function from lookup.py
+import vidgear
 # Initialize FastAPI app
 app = FastAPI()
 load_dotenv()
-# Replace 'your_groq_api_key' with your actual API key
+
+# Enable CORS to allow frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow requests from React frontend
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods (POST, GET, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
+
+# Load API key
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 client = Groq(api_key=GROQ_API_KEY)  # Initialize client with API key
 
-# Request model for input validation
 class TextInput(BaseModel):
     text: str
 
-# Function to convert text to ISL gloss
 def isl_gloss_translation(text: str) -> str:
     prompt = f"""
 You are an expert in Indian Sign Language (ISL) gloss translation. Your task is to accurately convert standard English text into ISL gloss while ensuring proper grammar, normalization, and structuring. Follow these strict rules for ISL conversion while also placing words in an order that best conveys meaning in ISL.
@@ -70,6 +82,8 @@ You are an expert in Indian Sign Language (ISL) gloss translation. Your task is 
 
 12. Consider context and natural ISL flow when structuring words. Words should be placed in an order that conveys the intended meaning in the most natural ISL way.
 
+13. If encountered any proper noun like a name - "DroupadiMurmu", keep it together and in lowercase: e.g., "DroupadiMurmu" should be like "droupadimurmu".
+
 Normalize spelling, correct punctuation, and return the final output in all uppercase. Only return the ISL gloss output without explanation.
 
 Now process the following text:
@@ -86,11 +100,19 @@ Now process the following text:
     )
     return completion.choices[0].message.content.strip()
 
-# API endpoint to receive text and return ISL gloss
 @app.post("/translate")
-def translate_text(input_data: TextInput):
+async def translate_text(input_data: TextInput):
     try:
         gloss_text = isl_gloss_translation(input_data.text)
-        return {"isl_gloss": gloss_text}
+        # Convert gloss output to a list of lowercase words
+        gloss_words_list = [word.lower() for word in gloss_text.split()]
+        
+        # Log the extracted words to ensure they are correct
+        logging.info(f"Sending words to lookup: {gloss_words_list}")
+        print(gloss_words_list)
+        # Call lookup function to generate sign language video
+        return await lookup(gloss_words_list) 
+    
     except Exception as e:
+        print(f"🔥 Backend Error: {e}")  # Log error
         raise HTTPException(status_code=500, detail=str(e))
