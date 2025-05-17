@@ -69,8 +69,23 @@ async def lookup(words: list[str]):
         else:
             print(f"{word} not found in index. Generating dynamically...")
             generated_url = get_pose_file(word)
+
             if generated_url and "http" in generated_url:
                 result_links.append(generated_url)
+            else:
+                print(f"Could not generate pose for '{word}'. Falling back to fingerspelling...")
+                for letter in word:
+                    if not letter.isalpha():
+                        continue  # skip non-alphabet characters
+                    letter_index_file = os.path.join(INDEX_DIR, f"pose_files_urls_{letter.upper()}.json")
+                    letter_index_data = load_json(letter_index_file)
+                    letter_url = letter_index_data.get(f"{letter.lower()}.pose")
+
+                    if letter_url:
+                        result_links.append(letter_url)
+                    else:
+                        print(f"Letter '{letter}' not found in index.")
+
 
     if not result_links:
         raise HTTPException(status_code=404, detail="No links found for given words")

@@ -9,3 +9,4 @@ scipy
 cloudinary
 google-api-python-client
 yt-dlp
+uvicorn

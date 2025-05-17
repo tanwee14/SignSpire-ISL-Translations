@@ -7,11 +7,10 @@ import os
 import logging
 from lookup import lookup  # Import lookup function from lookup.py
 import vidgear
-# Initialize FastAPI app
+
 app = FastAPI()
 load_dotenv()
 
-# Enable CORS to allow frontend requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow requests from React frontend
@@ -82,7 +81,12 @@ You are an expert in Indian Sign Language (ISL) gloss translation. Your task is 
 
 12. Consider context and natural ISL flow when structuring words. Words should be placed in an order that conveys the intended meaning in the most natural ISL way.
 
-13. If encountered any proper noun like a name - "DroupadiMurmu", keep it together and in lowercase: e.g., "DroupadiMurmu" should be like "droupadimurmu".
+13. If a proper noun (like a name, e.g., "Droupadi Murmu") or a common phrase (like "how are you","i am fine") is encountered, keep the words together without spaces and convert all letters to lowercase.
+ For example, "Droupadi Murmu" becomes "droupadimurmu", and "how are you" becomes "howareyou".
+
+14. Do not remove words like i , you or it keep them .
+
+15. If I comes in a sentence where it is not a letter its like "I am your friend" I signifies me so convert it to "me" rather than I for further processing
 
 Normalize spelling, correct punctuation, and return the final output in all uppercase. Only return the ISL gloss output without explanation.
 
